@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import StatsCard from './StatsCard'
 import { DEFAULT_GAME_ID } from '@/utils/constants'
+import StatsCard from './StatsCard'
 
 export default function PlayerSearch() {
     const [nickname, setNickname] = useState('')
@@ -41,7 +41,7 @@ export default function PlayerSearch() {
             const res = await fetch(`/api/stats/${playerId}/${DEFAULT_GAME_ID}`)
             const data = await res.json()
             if (res.ok) {
-                setStats(data.lifetime) // käytetään lifetime statseja
+                setStats(data.lifetime)
             } else {
                 setError('Failed to fetch stats')
                 setStats(null)
