@@ -9,8 +9,6 @@ export default function HomePage() {
     <main>
       <h1 className="text-center text-2xl font-bold my-4">FACEIT Player Stats</h1>
       <PlayerSearch />
-      <PlayerCard nickname={''} />
-      <MatchHistory playerId={''} />
     </main>
   )
 }
