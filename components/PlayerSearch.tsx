@@ -6,6 +6,7 @@ import StatsCard from './StatsCard'
 import BanCard from './BanInfo'
 import EloCard from './EloStats'
 import MatchHistory from './MatchList'
+import PlayerDetails from './PlayerCard'
 
 export default function PlayerSearch() {
   const [nickname, setNickname] = useState('')
@@ -15,6 +16,11 @@ export default function PlayerSearch() {
   const [elo, setElo] = useState<number | null>(null)
   const [country, setCountry] = useState<string | null>(null)
   const [matches, setMatches] = useState<any[]>([])
+  const [avatar, setAvatar] = useState<string | null>(null)
+const [steamNickname, setSteamNickname] = useState<string | null>(null)
+const [activatedAt, setActivatedAt] = useState<string | null>(null)
+const [verified, setVerified] = useState<boolean | null>(null)
+
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -66,9 +72,16 @@ export default function PlayerSearch() {
     try {
       const res = await fetch(`/api/matches/${playerId}`)
       const data = await res.json()
-      if (res.ok) setMatches(data.items || [])
-    } catch {}
+      if (res.ok) {
+        setMatches(data) // käytä koko dataa, ei pelkästään data.items
+      } else {
+        setMatches([])
+      }
+    } catch {
+      setMatches([])
+    }
   }
+  
 
   async function handleSearch(e: React.FormEvent) {
     e.preventDefault()
@@ -99,10 +112,12 @@ export default function PlayerSearch() {
 
       {error && <p className="text-red-600">{error}</p>}
 
-      <div className="flex flex-wrap gap-6 justify-center max-w-5xl mx-auto mt-8">
-  {stats && <div className="flex-1 min-w-[280px]">{<StatsCard nickname={nickname} stats={stats} />}</div>}
-  {elo && country && <div className="flex-1 min-w-[280px]">{<EloCard elo={elo} country={country} />}</div>}
+      <div className="flex flex-wrap gap-4 justify-center max-w-5xl mx-auto mt-8">
+  {stats && <div className="flex-2 min-w-[280px]">{<StatsCard nickname={nickname} stats={stats} />}</div>}
+  {elo && country && <div className="flex-2 min-w-[280px]">{<EloCard elo={elo} country={country} />}</div>}
   {ban !== null && <div className="flex-1 min-w-[280px]">{<BanCard banned={ban} />}</div>}
+  {playerId && <div className="flex-1 min-w-[280px]"> {<PlayerDetails playerId={playerId} />}</div>}
+
 </div>
 
 {matches.length > 0 && (
