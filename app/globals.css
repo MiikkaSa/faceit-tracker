@@ -1,8 +1,33 @@
 @import "tailwindcss";
 
+/* --- Perusvärit ja typografia --- */
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Sovelluksen perusväriteema */
+  --color-bg-dark: #0a1b3a;
+  /* tummempi sininen (yläosa) */
+  --color-bg-light: #102857;
+  /* hieman vaaleampi sininen (alaosa) */
+  --color-bg-card: #f8fafc;
+  /* korttien vaalea tausta */
+  --color-border: rgba(0, 0, 0, 0.1);
+
+  /* Tekstivärit */
+  --color-text-light: #f1f5f9;
+  --color-text-dark: #1e293b;
+  --color-text-muted: #64748b;
+
+  /* Korostusvärit */
+  --color-accent: #3b82f6;
+  /* Tailwindin sininen 500 */
+  --color-accent-alt: #60a5fa;
+  /* sininen 400 */
+  --color-positive: #22c55e;
+  /* vihreä 500 */
+  --color-negative: #ef4444;
+  /* punainen 500 */
 }
 
 @theme inline {
@@ -12,15 +37,101 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* --- Dark mode override --- */
 @media (prefers-color-scheme: dark) {
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+
+    --color-bg-dark: #08152e;
+    --color-bg-light: #0f2045;
+    --color-bg-card: #111827;
+    --color-border: rgba(255, 255, 255, 0.1);
+
+    --color-text-light: #e2e8f0;
+    --color-text-dark: #f8fafc;
+    --color-text-muted: #9ca3af;
+
+    --color-accent: #60a5fa;
+    --color-accent-alt: #93c5fd;
+    --color-positive: #4ade80;
+    --color-negative: #f87171;
   }
 }
 
+/* --- Yleiset asetukset --- */
 body {
-  background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* --- Komponenttien yleiset apuluokat --- */
+
+/* Korttipohjat */
+.card-base {
+  background: var(--color-bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.card-base:hover,
+.card-base:focus-within {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* Tekstivärit */
+.text-accent {
+  color: var(--color-accent);
+}
+
+.text-muted {
+  color: var(--color-text-muted);
+}
+
+.text-positive {
+  color: var(--color-positive);
+}
+
+.text-negative {
+  color: var(--color-negative);
+}
+
+/* Painikkeet */
+.btn-primary {
+  background: var(--color-accent);
+  color: #fff;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-alt);
+}
+
+.btn-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Syötekentät */
+.input-field {
+  background: var(--color-bg-card);
+  color: var(--color-text-dark);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.8rem;
+  width: 100%;
+  transition: all 0.2s ease;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
 }
