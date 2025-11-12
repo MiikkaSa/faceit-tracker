@@ -1,14 +1,13 @@
 "use client";
-
+import { PlayerDetails as PlayerDetailsType } from "@/types/faceit";
 import { useEffect, useState } from "react";
-import Image from "next/image";
 
 interface PlayerDetailsProps {
   playerId: string;
 }
 
 export default function PlayerDetails({ playerId }: PlayerDetailsProps) {
-  const [data, setData] = useState<any>(null);
+  const [data, setData] = useState<PlayerDetailsType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -18,12 +17,15 @@ export default function PlayerDetails({ playerId }: PlayerDetailsProps) {
       setError(null);
       try {
         const res = await fetch(`/api/player/${playerId}`);
-        const json = await res.json();
+        const json: PlayerDetailsType = await res.json();
         if (!res.ok)
-          throw new Error(json.error || "Failed to fetch player details");
+          throw new Error(
+            json ? "Failed to fetch player details" : "Unknown error"
+          );
         setData(json);
-      } catch (err: any) {
-        setError(err.message || "Failed to fetch player details");
+      } catch (err) {
+        if (err instanceof Error) setError(err.message);
+        else setError("Failed to fetch player details");
       } finally {
         setLoading(false);
       }
@@ -64,22 +66,32 @@ export default function PlayerDetails({ playerId }: PlayerDetailsProps) {
         👤 Player Details
       </h2>
 
-      <div className="flex items-center gap-4 mb-5">
-        <div>
-          <p className="text-xl font-semibold text-[var(--color-accent-alt)]">
-            {data.nickname}
-          </p>
-          {data.verified !== undefined && (
-            <p className="text-sm text-[var(--color-text-muted)] mt-1">
-              Verified:{" "}
-              <span className="text-[var(--color-accent)] font-medium">
-                {data.verified === true || data.verified === "true"
-                  ? "✅ Yes"
-                  : "❌ No"}
-              </span>
-            </p>
-          )}
+      {/* Avatar */}
+      {/* {data.avatar && (
+        <div className="flex justify-center mb-4">
+          <img
+            src={data.avatar}
+            alt={`${data.nickname}'s avatar`}
+            className="w-20 h-20 rounded-full border border-gray-300 shadow-sm"
+          />
         </div>
+      )} */}
+
+      {/* Nimi + Verified */}
+      <div className="flex flex-col mb-4">
+        <p className="text-xl font-semibold text-[var(--color-accent-alt)]">
+          {data.nickname}
+        </p>
+        {data.verified !== undefined && (
+          <p className="text-sm text-[var(--color-text-muted)] mt-1">
+            Verified:{" "}
+            <span className="text-[var(--color-accent)] font-medium">
+              {data.verified === true || data.verified === "true"
+                ? "✅ Yes"
+                : "❌ No"}
+            </span>
+          </p>
+        )}
       </div>
 
       {/* Info grid */}

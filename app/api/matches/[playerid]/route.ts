@@ -1,31 +1,57 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { getPlayerMatches, getMatchStats } from '@/utils/faceitApi'
+import { NextRequest, NextResponse } from "next/server";
+import { getPlayerMatches, getMatchStats } from "@/utils/faceitApi";
+
+interface MatchItem {
+  match_id: string;
+}
+
+interface MatchWithStats extends MatchItem {
+  stats: MatchStats | null;
+}
+
+interface MatchStats {
+  rounds?: Array<{
+    round_stats?: Record<string, string>;
+    teams?: Team[];
+  }>;
+}
+
+interface Team {
+  team_id: string;
+  team_stats?: Record<string, string>;
+  players: Player[];
+}
+
+interface Player {
+  player_id: string;
+  nickname: string;
+  player_stats?: Record<string, string>;
+}
 
 export async function GET(
-  _req: NextRequest,
-  context: { params: Promise<{ playerid: string }> } // params on promise
+  req: NextRequest,
+  { params }: { params: { playerid: string } }
 ) {
-  const { playerid } = await context.params
-
   try {
-    // hae pelaajan matsit
-    const matches = await getPlayerMatches(playerid)
+    const matches = await getPlayerMatches(params.playerid);
 
-    // lisää stats jokaiselle matsille
-    const matchesWithStats = await Promise.all(
-      matches.items.map(async (m: any) => {
+    const matchesWithStats: MatchWithStats[] = await Promise.all(
+      matches.items.map(async (m: MatchItem) => {
         try {
-          const stats = await getMatchStats(m.match_id)
-          return { ...m, stats, player_id: playerid } // lisää player_id jotta MatchHistory löytää pelaajan
+          const stats = await getMatchStats(m.match_id);
+          return { ...m, stats };
         } catch {
-          return { ...m, stats: null, player_id: playerid }
+          return { ...m, stats: null };
         }
       })
-    )
+    );
 
-    return NextResponse.json(matchesWithStats)
+    return NextResponse.json(matchesWithStats);
   } catch (err) {
-    console.error('Matches API error:', err)
-    return NextResponse.json({ error: 'Failed to fetch matches' }, { status: 500 })
+    console.error(err);
+    return NextResponse.json(
+      { error: "Failed to fetch matches" },
+      { status: 500 }
+    );
   }
 }
