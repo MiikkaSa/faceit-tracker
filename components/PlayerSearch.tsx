@@ -7,83 +7,115 @@ import BanCard from "./BanInfo";
 import EloCard from "./EloStats";
 import MatchHistory from "./MatchList";
 import PlayerDetails from "./PlayerCard";
+import type { Match, LifetimeStats } from "@/types/faceit";
 
 export default function PlayerSearch() {
   const [nickname, setNickname] = useState("");
+  const [faceitNickname, setFaceitNickname] = useState<string | null>(null);
   const [playerId, setPlayerId] = useState<string | null>(null);
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<LifetimeStats | null>(null);
   const [ban, setBan] = useState<boolean | null>(null);
   const [elo, setElo] = useState<number | null>(null);
   const [csgoElo, setCsgoElo] = useState<number | null>(null);
   const [country, setCountry] = useState<string | null>(null);
-  const [matches, setMatches] = useState<any[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function fetchPlayerId(nick: string) {
+  async function fetchPlayerId(input: string) {
     setLoading(true);
     setError(null);
+
     try {
+      let steamId: string | null = null;
+      const nickname = input.trim();
+
+      // 🔸 1. Jos käyttäjä syöttää koko Steam URL:n
+      const steamUrlMatch = input.match(/steamcommunity\.com\/id\/([^/]+)/i);
+      if (steamUrlMatch) {
+        const customId = steamUrlMatch[1];
+        const res = await fetch(`/api/steam/resolve?customId=${customId}`);
+        const data = await res.json();
+        if (res.ok && data.steamid) {
+          steamId = data.steamid;
+        } else {
+          throw new Error("Failed to resolve Steam ID");
+        }
+      }
+
+      // 🔸 2. Faceit API haku (steamId tai nickname)
       const res = await fetch(
-        `/api/overview?nickname=${encodeURIComponent(
-          nick
-        )}&game=${DEFAULT_GAME_ID}`
+        `/api/overview?${
+          steamId
+            ? `steamId=${steamId}`
+            : `nickname=${encodeURIComponent(nickname)}`
+        }&game=${DEFAULT_GAME_ID}`
       );
       const data = await res.json();
+
       if (res.ok && data.player_id) {
         setPlayerId(data.player_id);
+        setFaceitNickname(data.nickname ?? null);
         setElo(data.games?.cs2?.faceit_elo ?? null);
         setCountry(data.country ?? null);
-        setCsgoElo(data.games?.csgo.faceit_elo ?? null);
+        setCsgoElo(data.games?.csgo?.faceit_elo ?? null);
         return data.player_id;
       } else {
         setError("Player not found");
         setPlayerId(null);
+        setFaceitNickname(null);
         return null;
       }
-    } catch {
-      setError("Failed to fetch player ID");
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch player ID";
+      console.error(errorMessage);
+      setError(errorMessage || "Failed to fetch player ID");
       setPlayerId(null);
+      setFaceitNickname(null);
       return null;
     } finally {
       setLoading(false);
     }
   }
 
-  async function fetchStats(playerId: string) {
+  // 🔹 2. Hae tilastot
+  async function fetchStats(playerId: string): Promise<void> {
     try {
       const res = await fetch(`/api/stats/${playerId}/${DEFAULT_GAME_ID}`);
       const data = await res.json();
-      if (res.ok) setStats(data.lifetime);
+      if (res.ok) setStats(data.lifetime as LifetimeStats);
       else setError("Failed to fetch stats");
     } catch {
       setError("Failed to fetch stats");
     }
   }
 
-  async function fetchBan(playerId: string) {
+  // 🔹 3. Hae ban-status
+  async function fetchBan(playerId: string): Promise<void> {
     try {
       const res = await fetch(`/api/ban/${playerId}`);
       const data = await res.json();
-      if (res.ok) setBan(data.banned);
-    } catch {}
+      if (res.ok) setBan(Boolean(data.banned));
+    } catch {
+      /* ei estä muuta hakua */
+    }
   }
 
-  async function fetchMatches(playerId: string) {
+  // 🔹 4. Hae ottelut
+  async function fetchMatches(playerId: string): Promise<void> {
     try {
       const res = await fetch(`/api/matches/${playerId}`);
-      const data = await res.json();
-      if (res.ok) {
-        setMatches(data);
-      } else {
-        setMatches([]);
-      }
+      const data: Match[] = await res.json();
+      setMatches(res.ok ? data : []);
     } catch {
       setMatches([]);
     }
   }
 
-  async function handleSearch(e: React.FormEvent) {
+  // 🔹 5. Haku-toiminto
+  async function handleSearch(e: React.FormEvent): Promise<void> {
     e.preventDefault();
     const id = await fetchPlayerId(nickname);
     if (id) {
@@ -93,7 +125,7 @@ export default function PlayerSearch() {
 
   return (
     <div className="max-w-3xl mx-auto p-6 text-gray-100">
-      {/* Hakulomake */}
+      {/* 🔹 Hakulomake */}
       <form
         onSubmit={handleSearch}
         className="mb-6 bg-[var(--color-bg-light)] border border-[var(--color-border)] 
@@ -128,19 +160,16 @@ export default function PlayerSearch() {
         </div>
       </form>
 
-      {/* Virheilmoitus */}
+      {/* 🔹 Virheilmoitus */}
       {error && (
         <p className="text-red-400 text-center mb-4 font-medium">{error}</p>
       )}
 
-      {/* Kortit */}
-      <div
-        className="flex flex-wrap gap-6 justify-center 
-                   max-w-6xl mx-auto mt-10"
-      >
+      {/* 🔹 Kortit */}
+      <div className="flex flex-wrap gap-6 justify-center max-w-6xl mx-auto mt-10">
         {stats && (
           <div className="flex-2 min-w-[280px]">
-            <StatsCard nickname={nickname} stats={stats} />
+            <StatsCard nickname={faceitNickname ?? nickname} stats={stats} />
           </div>
         )}
         {elo && country && (
@@ -160,7 +189,7 @@ export default function PlayerSearch() {
         )}
       </div>
 
-      {/* Otteluhistoria */}
+      {/* 🔹 Otteluhistoria */}
       {matches.length > 0 && (
         <div className="max-w-5xl mx-auto mt-12">
           <MatchHistory matches={matches} />

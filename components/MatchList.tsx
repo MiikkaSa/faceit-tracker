@@ -1,22 +1,26 @@
 "use client";
 import React, { useState } from "react";
-import Image from "next/image";
+import type { Match, Team, Player } from "@/types/faceit";
 
-export default function MatchHistory({ matches }: { matches: any[] }) {
+interface MatchHistoryProps {
+  matches: Match[];
+}
+
+export default function MatchHistory({ matches }: MatchHistoryProps) {
   const [expandedMatchId, setExpandedMatchId] = useState<string | null>(null);
 
   return (
     <div className="space-y-8">
       {matches.map((match) => {
         const stats = match.stats?.rounds?.[0];
-        const teams = stats?.teams ?? [];
+        const teams: Team[] = stats?.teams ?? [];
         const map = stats?.round_stats?.Map ?? "Unknown";
 
-        const playerTeamIndex = teams.findIndex((t: any) =>
-          t.players.some((p: any) => p.player_id === match.player_id)
+        const playerTeamIndex = teams.findIndex((t: Team) =>
+          t.players.some((p: Player) => p.player_id === match.player_id)
         );
 
-        const teamScores = teams.map((t: any) =>
+        const teamScores = teams.map((t: Team) =>
           Number(t.team_stats?.["Final Score"] ?? 0)
         );
 
@@ -102,16 +106,16 @@ export default function MatchHistory({ matches }: { matches: any[] }) {
             {/* Expanded view */}
             {expandedMatchId === match.match_id && (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 px-4 pb-5 mt-4">
-                {teams.map((team: any, idx: number) => {
+                {teams.map((team, idx) => {
                   const sortedPlayers = [...team.players].sort((a, b) => {
-                    const aKD =
-                      a.player_stats && a.player_stats.Deaths > 0
-                        ? a.player_stats.Kills / a.player_stats.Deaths
-                        : 0;
-                    const bKD =
-                      b.player_stats && b.player_stats.Deaths > 0
-                        ? b.player_stats.Kills / b.player_stats.Deaths
-                        : 0;
+                    const aKills = Number(a.player_stats?.Kills ?? 0);
+                    const aDeaths = Number(a.player_stats?.Deaths ?? 0);
+                    const bKills = Number(b.player_stats?.Kills ?? 0);
+                    const bDeaths = Number(b.player_stats?.Deaths ?? 0);
+
+                    const aKD = aDeaths > 0 ? aKills / aDeaths : 0;
+                    const bKD = bDeaths > 0 ? bKills / bDeaths : 0;
+
                     return bKD - aKD;
                   });
 
@@ -132,17 +136,16 @@ export default function MatchHistory({ matches }: { matches: any[] }) {
                           team.nickname ||
                           `Team ${idx + 1}`}
                       </h3>
+
                       <ul className="space-y-1 text-sm">
-                        {sortedPlayers.map((p: any) => {
+                        {sortedPlayers.map((p) => {
+                          const kills = Number(p.player_stats?.Kills ?? 0);
+                          const deaths = Number(p.player_stats?.Deaths ?? 0);
                           const kd =
-                            p.player_stats && p.player_stats.Deaths > 0
-                              ? (
-                                  p.player_stats.Kills / p.player_stats.Deaths
-                                ).toFixed(2)
-                              : "0.00";
+                            deaths > 0 ? (kills / deaths).toFixed(2) : "0.00";
                           const kr =
-                            p.player_stats?.["K/R Ratio"] ??
-                            (p.player_stats?.Kills / 30).toFixed(2);
+                            (p.player_stats?.["K/R Ratio"] as string) ??
+                            (kills / 30).toFixed(2);
 
                           return (
                             <li
@@ -157,7 +160,7 @@ export default function MatchHistory({ matches }: { matches: any[] }) {
 
                               {p.player_stats && (
                                 <span className="text-[var(--color-text-muted)]">
-                                  {p.player_stats.Kills}/{p.player_stats.Deaths}{" "}
+                                  {kills}/{deaths}{" "}
                                   <span className="text-xs text-gray-400">
                                     (K/D {kd})
                                   </span>
