@@ -33,12 +33,6 @@ export async function getPlayerMatches(playerId: string, limit = 30, offset = 0)
     return res.json();
 }
 
-export async function getBanStatus(playerId: string) {
-    const res = await fetch(`${FACEIT_API}/players/${playerId}`, { headers });
-    if (!res.ok) throw new Error('Failed to fetch ban status');
-    return res.json(); // contains info such as 'banned': boolean
-}
-
 export async function getMatchStats(matchId: string) {
     const res = await fetch (`${FACEIT_API}/matches/${matchId}/stats`, {
         headers,
@@ -51,4 +45,4 @@ export async function getPlayerDetails(playerId: string) {
     const res = await fetch(`${FACEIT_API_BASE}/players/${playerId}`, { headers })
     if (!res.ok) throw new Error('Failed to fetch player details')
     return res.json()
-  }
+  } 

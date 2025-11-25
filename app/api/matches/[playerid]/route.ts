@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getPlayerMatches, getMatchStats } from "@/utils/faceitApi";
 
 interface MatchItem {
@@ -29,7 +29,7 @@ interface Player {
 }
 
 export async function GET(
-  req: NextRequest,
+  _req: Request,
   { params }: { params: { playerid: string } }
 ) {
   try {
