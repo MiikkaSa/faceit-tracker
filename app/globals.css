@@ -67,8 +67,6 @@ body {
   background-repeat: no-repeat;
 }
 
-/* --- Komponenttien yleiset apuluokat --- */
-
 /* Korttipohjat */
 .card-base {
   background: var(--color-bg-card);

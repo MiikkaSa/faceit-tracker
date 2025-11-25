@@ -20,10 +20,10 @@ export async function GET(req: Request) {
     let url = "";
 
     if (steamId) {
-      // 🔹 Jos haetaan Steam ID:llä
+      // Jos haetaan Steam ID:llä
       url = `${BASE_URL}/players?game=${game}&game_player_id=${steamId}`;
     } else if (nickname) {
-      // 🔹 Jos haetaan Faceit-nickillä
+      // Jos haetaan Faceit-nickillä
       url = `${BASE_URL}/players?nickname=${encodeURIComponent(nickname)}`;
     }
 
@@ -34,7 +34,6 @@ export async function GET(req: Request) {
       next: { revalidate: 60 },
     });
 
-    // 🔹 Luetaan aina ensin raakateksti (voi olla JSON, virhesivu tai tyhjä)
     const raw = await res.text();
 
     if (!res.ok) {
@@ -45,7 +44,7 @@ export async function GET(req: Request) {
       );
     }
 
-    // 🔹 Jos vastaus on tyhjä
+    // Jos vastaus on tyhjä
     if (!raw) {
       console.error("Empty response body from Faceit API");
       return NextResponse.json(
@@ -54,7 +53,6 @@ export async function GET(req: Request) {
       );
     }
 
-    // 🔹 Yritetään jäsentää JSON turvallisesti
     let data;
     try {
       data = JSON.parse(raw);

@@ -15,12 +15,12 @@ export async function GET(req: Request) {
   }
 
   try {
-    // 🔹 Jos käyttäjä antoi suoraan numerollisen SteamID64:n
+    // Jos käyttäjä antoi suoraan numerollisen SteamID64:n
     if (/^\d{17}$/.test(customId)) {
       return NextResponse.json({ steamid: customId });
     }
 
-    // 🔹 Jos käyttäjä antoi täyden URL:n
+    // Jos käyttäjä antoi täyden URL:n
     if (customId.includes("steamcommunity.com")) {
       const profileMatch = customId.match(/\/profiles\/(\d{17})/);
       const vanityMatch = customId.match(/\/id\/([^\/]+)/);
@@ -29,7 +29,6 @@ export async function GET(req: Request) {
         // Profiili-URL sisältää jo steamid64:n
         return NextResponse.json({ steamid: profileMatch[1] });
       } else if (vanityMatch) {
-        // Vanity-URL, kuten /id/nakki37
         const vanityId = vanityMatch[1];
         return await resolveVanityId(vanityId);
       } else {
@@ -40,7 +39,7 @@ export async function GET(req: Request) {
       }
     }
 
-    // 🔹 Jos käyttäjä antoi pelkän custom ID:n kuten "nakki37"
+    // Jos käyttäjä antoi pelkän custom ID:n
     return await resolveVanityId(customId);
   } catch (err) {
     const errorMessage =
@@ -53,7 +52,7 @@ export async function GET(req: Request) {
   }
 }
 
-// 🔧 Apufunktio vanity-ID:n ratkaisuun
+// Apufunktio vanity-ID:n ratkaisuun
 async function resolveVanityId(vanityId: string) {
   if (!STEAM_API_KEY) {
     throw new Error("Missing Steam API key (STEAM_API_KEY not set)");

@@ -51,4 +51,4 @@ export async function getPlayerDetails(playerId: string) {
     const res = await fetch(`${FACEIT_API_BASE}/players/${playerId}`, { headers })
     if (!res.ok) throw new Error('Failed to fetch player details')
     return res.json()
-  }
+  } 
