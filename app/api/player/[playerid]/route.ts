@@ -1,12 +1,22 @@
+// app/api/player/[playerid]/route.ts
 import { NextResponse } from "next/server";
 import { getPlayerDetails } from "@/utils/faceitApi";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: { playerid: string } }
-) {
+type Ctx<T extends Record<string, string | string[]>> = { params: T };
+
+export async function GET(_req: Request, context: unknown) {
   try {
-    const data = await getPlayerDetails(params.playerid);
+    const { params } = context as Ctx<{ playerid: string | string[] }>;
+
+    const playerid = Array.isArray(params.playerid)
+      ? params.playerid[0]
+      : params.playerid;
+
+    if (!playerid) {
+      return NextResponse.json({ error: "Missing playerid" }, { status: 400 });
+    }
+
+    const data = await getPlayerDetails(playerid);
     return NextResponse.json(data);
   } catch (err) {
     console.error("Failed to fetch player details", err);
