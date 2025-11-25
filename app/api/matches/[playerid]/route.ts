@@ -30,10 +30,11 @@ interface Player {
 
 export async function GET(
   _req: Request,
-  { params }: { params: { playerid: string } }
+  { params }: { params: Record<string, string> }
 ) {
   try {
-    const matches = await getPlayerMatches(params.playerid);
+    const playerid = params.playerid;
+    const matches = await getPlayerMatches(playerid);
 
     const matchesWithStats: MatchWithStats[] = await Promise.all(
       matches.items.map(async (m: MatchItem) => {
